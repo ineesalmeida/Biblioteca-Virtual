@@ -1,0 +1,40 @@
+.body {
+    background-color: beige;
+    text-align: center;
+}
+
+p, input, td {
+    font-size: 11pt;
+}
+
+.content {
+    max-width: 800px;
+    padding: 60px;
+}
+
+#col-titulo {
+    width: 33%;
+}
+#col-autor {
+    width: 20%;
+}
+
+header {
+    padding: 60px;
+    /* background-image: url("../images/livros.jpg"); */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("../images/livros.jpg");
+}
+
+header h1 {
+    color: white;
+    font-size: 60pt;
+}
+
+header h2 {
+    color: white;
+}
+
+#search_bar {
+    padding-bottom: 60px;
+    padding-right: 60px;
+}

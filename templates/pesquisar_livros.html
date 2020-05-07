@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Biblioteca Virtual
+{% endblock %}
+
+{% block header %}
+    <h1>Biblioteca Virtual</h1>
+    <h2>Pesquisa</h2>
+{% endblock %}
+
+{% block body %}
+
+    <div id="search_bar">
+        <label for="pesquisa">Pesquisar</label>
+        <input class="form-control" type="text" id="pesquisa" name="pesquisa">
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Filtrar por
+            </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="#">Tudo</a>
+                <a class="dropdown-item" href="#">Título</a>
+                <a class="dropdown-item" href="#">Autor</a>
+                <a class="dropdown-item" href="#">Editora</a>
+                <a class="dropdown-item" href="#">Colecção</a>
+            </div>
+            </div>
+    </div>
+
+    <table class="table table-hover" id="lista_livros" style="min-width: 1300px">
+        <thead>
+            <tr>
+                <td scope="col" style="width: 5%">ID</td>
+                <td scope="col" style="width: 25%">Título</td>
+                <td scope="col" style="width: 25%">Autor</td>
+                <td scope="col" style="width: 15%">Editora</td>
+                <td scope="col" style="width: 15%">Título da Colecção</td>
+                <td scope="col" style="width: 5%">Quantidade</td>
+                <td scope="col" style="width: 5%">Localização</td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for livro in livros %}
+            <tr>
+                <th scope="row">{{ livro.id }}</th>
+                <td>{{ livro.titulo }}</td>
+                <td>{{ livro.autor.nome }}</td>
+                <td>{{ livro.editora }}</td>
+                <td>{{ livro.titulo_coleccao }}</td>
+                <td>{{ livro.quantidade }}</td>
+                <td>{{ livro.localizacao }}</td>
+                <td><button type="button" class="btn btn-primary btn-block btn-sm" data-toggle="modal" data-target="#editModal{{ livro.id }}"><i class="fas fa-edit"></i></button></td>
+                <td><button type="button" class="btn btn-danger btn-block btn-sm" data-toggle="modal" data-target="#deleteModal{{ livro.id }}"><i class="fas fa-trash-alt"></i></button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <nav aria-label="...">
+        <ul class="pagination">
+            <li class="page-item disabled">
+            <span class="page-link">Previous</span>
+            </li>
+            <li class="page-item active" aria-current="page"><span class="page-link">1<span class="sr-only">(current)</span></span></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+            <a class="page-link" href="#">Next</a>
+            </li>
+        </ul>
+    </nav>
+
+{% endblock %}
+
+

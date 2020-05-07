@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Biblioteca Virtual
+{% endblock %}
+
+{% block header %}
+    <h1>Biblioteca Virtual</h1>
+    <h2>Adicionar</h2>
+{% endblock %}
+
+{% block body %}
+    <div class="alert alert-success" role="alert">
+        Livro adicionado com sucesso.
+    </div>
+
+    <table class="table table-hover" id="lista_livros" style="min-width: 1300px">
+        <thead>
+            <tr>
+                <td scope="col" style="width: 5%">ID</td>
+                <td scope="col" style="width: 25%">Título</td>
+                <td scope="col" style="width: 20%">Autor</td>
+                <td scope="col" style="width: 15%">Editora</td>
+                <td scope="col" style="width: 15%">Título da Colecção</td>
+                <td scope="col" style="width: 5%">Quantidade</td>
+                <td scope="col" style="width: 5%">Localização</td>
+                <td scope="col" style="width: 5%"></td>
+                <td scope="col" style="width: 5%"></td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <form action="{{ url_for('adicionar') }}" method="POST">
+                    <th scope="row">Novo</th>
+                    <td>
+                        <input class="form-control" type="text" id="titulo" name="titulo">
+                    </td>
+                    <td>
+                        <input class="form-control" type="search" id="autor" name="autor">
+                    </td>
+                    <td>
+                        <input class="form-control" type="search" id="editora" name="editora">
+                    </td>
+                    <td>
+                        <input class="form-control" type="text" id="coleccao" name="coleccao">
+                    </td>
+                    <td>
+                        <input class="form-control" type="number" id="quant" name="quant" min="1" max="10">
+                    </td>
+                    <td>
+                        <input class="form-control" type="text" id="local" name="local">
+                    </td>
+                    <td>
+                        <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-plus-circle"></i></button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-block" onclick="clearForm()"><i class="fas fa-broom"></i></button>
+                    </td>
+                </form>
+            </tr>
+            {% for livro in livros %}
+                <tr>
+                    <th scope="row">{{ livro.id }}</th>
+                    <td>{{ livro.titulo }}</td>
+                    <td>{{ livro.autor.nome }}</td>
+                    <td>{{ livro.editora }}</td>
+                    <td>{{ livro.titulo_coleccao }}</td>
+                    <td>{{ livro.quantidade }}</td>
+                    <td>{{ livro.localizacao }}</td>
+                    <td><button type="button" class="btn btn-primary btn-block btn-sm" data-toggle="modal" data-target="#editModal{{ livro.id }}"><i class="fas fa-edit"></i></button></td>
+                    <td><button type="button" class="btn btn-danger btn-block btn-sm" data-toggle="modal" data-target="#deleteModal{{ livro.id }}"><i class="fas fa-trash-alt"></i></button></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+      
+    <!-- Modal Delete -->
+    {% for livro in livros %}
+        <div class="modal fade" id="deleteModal{{ livro.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">Tem a certeza?</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Tem a certeza que quer apagar o registo "{{ livro.titulo }}"?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Cancelar</button>
+                        <form action="{{ url_for('adicionar') }}" method="POST"><button type="submit" class="btn btn-danger" name="apagar_livro" value="{{ livro.id }}">Apagar</button></form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <!-- Modal Edit -->
+    {% for livro in livros %}
+        <div class="modal fade" id="editModal{{ livro.id }}" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editModalLabel">Editar Livro</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form action="{{ url_for('adicionar') }}" method="POST">
+                        <div class="modal-body">
+                            <label for="titulo">Título</label>
+                            <input style="visibility: hidden; width: 1px" type="number" id="livro_id" value="{{ livro.id }}" name="livro_id">
+                            <input class="form-control" type="text" id="titulo" value="{{ livro.titulo }}" name="titulo">
+                            <label for="autor">Autor</label>
+                            <input class="form-control" type="search" id="autor" value="{{ livro.autor }}" name="autor">
+                            <label for="editora">Editora</label>
+                            <input class="form-control" type="search" id="editora" value="{{ livro.editora }}" name="editora">
+                            <label for="coleccao">Título da Colecção</label>
+                            <input class="form-control" type="text" id="coleccao" value="{{ livro.titulo_coleccao }}" name="coleccao">
+                            <label for="quant">Quantidade</label>
+                            <input class="form-control" type="number" id="quant" name="quant" min="1" max="10" value="{{ livro.quant }}" name="quant">
+                            <label for="local">Localização</label>
+                            <input class="form-control" type="text" id="local"  value="{{ livro.local }}" name="local">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">Cancelar</button>
+                            <input type="submit" class="btn btn-primary" name="editar_livro" value="Guardar">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+<script>
+function clearForm(){
+    inputs = document.getElementsByTagName("input");
+    for (i in inputs) {
+        inputs[i].value = "";
+    }
+}
+
+</script>
+
+{% endblock %}
+
+
