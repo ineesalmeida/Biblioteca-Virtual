@@ -11,33 +11,44 @@
 
 {% block body %}
 
-    <div id="search_bar">
-        <label for="pesquisa">Pesquisar</label>
-        <input class="form-control" type="text" id="pesquisa" name="pesquisa">
-        <div class="btn-group">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Filtrar por
-            </button>
-            <div class="dropdown-menu">
-                <a class="dropdown-item" href="#">Tudo</a>
-                <a class="dropdown-item" href="#">Título</a>
-                <a class="dropdown-item" href="#">Autor</a>
-                <a class="dropdown-item" href="#">Editora</a>
-                <a class="dropdown-item" href="#">Colecção</a>
+    <div id="search_bar" width="100%">
+        <form action="" id="id_filter_form" class="form-inline">
+            <div class="form-group mb-2">
+                <label for="pesquisa">Pesquisar  </label>
+                <input class="form-control" type="text" id="pesquisa" name="pesquisa" onkeyup="filtrarLivros()" placeholder="Pesquisar por...">
             </div>
+            <div class="form-group mb-2">
+                <div class="form-group">
+                    <label for="tipo_de_filtro"> por</label>
+                    <select class="form-control" id="tipo_de_filtro" onchange="filtrarLivros()" >
+                        <option id="choose_filer_tudo" value="tudo">Tudo</option>
+                        <option id="choose_filer_titulo" value="0">Título</option>
+                        <option id="choose_filer_autor" value="1">Autor</option>
+                        <option id="choose_filer_editora" value="2">Editora</option>
+                        <option id="choose_filer_ano" value="3">Ano</option>
+                        <option id="choose_filer_tema" value="4">Tema</option>
+                        <option id="choose_filer_coleccao" value="6">Título da Colecção</option>
+                        <option  id="choose_filer_local" value="8">Localização</option>
+                    </select>
+                </div>
             </div>
+        </form>
     </div>
 
     <table class="table table-hover" id="lista_livros" style="min-width: 1300px">
         <thead>
             <tr>
                 <td scope="col" style="width: 5%">ID</td>
-                <td scope="col" style="width: 25%">Título</td>
-                <td scope="col" style="width: 25%">Autor</td>
-                <td scope="col" style="width: 15%">Editora</td>
-                <td scope="col" style="width: 15%">Título da Colecção</td>
+                <td scope="col" style="width: 20%">Título</td>
+                <td scope="col" style="width: 15%">Autor</td>
+                <td scope="col" style="width: 10%">Editora</td>
+                <td scope="col" style="width: 10%">Ano</td>
+                <td scope="col" style="width: 10%">Tema</td>
+                <td scope="col" style="width: 10%">Volumes</td>
+                <td scope="col" style="width: 10%">Título da Colecção</td>
                 <td scope="col" style="width: 5%">Quantidade</td>
                 <td scope="col" style="width: 5%">Localização</td>
+                <td scope="col" style="width: 5%">Emprestado</td>
             </tr>
         </thead>
         <tbody>
@@ -47,17 +58,19 @@
                 <td>{{ livro.titulo }}</td>
                 <td>{{ livro.autor.nome }}</td>
                 <td>{{ livro.editora }}</td>
+                <td>{{ livro.ano }}</td>
+                <td>{{ livro.tema }}</td>
+                <td>{{ livro.volumes }}</td>
                 <td>{{ livro.titulo_coleccao }}</td>
                 <td>{{ livro.quantidade }}</td>
                 <td>{{ livro.localizacao }}</td>
-                <td><button type="button" class="btn btn-primary btn-block btn-sm" data-toggle="modal" data-target="#editModal{{ livro.id }}"><i class="fas fa-edit"></i></button></td>
-                <td><button type="button" class="btn btn-danger btn-block btn-sm" data-toggle="modal" data-target="#deleteModal{{ livro.id }}"><i class="fas fa-trash-alt"></i></button></td>
-            </tr>
+                <td>{% if livro.emprestado_a %}<i class="fas fa-check-circle" title="{{ livro.emprestado_a }}"></i>{% endif %}</td>
+             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <nav aria-label="...">
+    <!-- <nav aria-label="...">
         <ul class="pagination">
             <li class="page-item disabled">
             <span class="page-link">Previous</span>
@@ -69,7 +82,53 @@
             <a class="page-link" href="#">Next</a>
             </li>
         </ul>
-    </nav>
+    </nav> -->
+
+    <script>
+        function filtrarLivros() {
+            // Declare variables
+            var input, filter, filter_type, table, tr, td, i, txtValue, display;
+            input = document.getElementById("pesquisa");
+            filter = input.value.toUpperCase();
+            filter_type = document.getElementById("tipo_de_filtro").value;
+            table = document.getElementById("lista_livros");
+            tr = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+
+            // Loop through all table rows, and hide those who don't match the search query
+            if (filter_type == "tudo") {
+                for (i = 0; i < tr.length; i++) {
+                    td = tr[i].getElementsByTagName("td");
+                    display = false;
+                    for (j = 0; j < td.length; j++) {
+                        txtValue = td[j].textContent || td[j].innerText;
+                        if (txtValue) {
+                            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                                display = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (display) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            } else {
+                for (i = 0; i < tr.length; i++) {
+                    td = tr[i].getElementsByTagName("td")[filter_type];
+                    if (td) {
+                        txtValue = td.textContent || td.innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            tr[i].style.display = "";
+                        } else {
+                            tr[i].style.display = "none";
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
 {% endblock %}
 

@@ -10,42 +10,63 @@
 {% endblock %}
 
 {% block body %}
-    <div class="alert alert-success" role="alert">
-        Livro adicionado com sucesso.
-    </div>
+    {% if alert %}
+        <div class="alert alert-{{ alert.type }} alert-dismissible fade show" role="alert">
+            {{ alert.message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    {% endif %}
 
-    <table class="table table-hover" id="lista_livros" style="min-width: 1300px">
+    <table class="table table-hover" id="lista_livros" style="min-width: 1400px">
         <thead>
             <tr>
                 <td scope="col" style="width: 5%">ID</td>
-                <td scope="col" style="width: 25%">Título</td>
-                <td scope="col" style="width: 20%">Autor</td>
-                <td scope="col" style="width: 15%">Editora</td>
-                <td scope="col" style="width: 15%">Título da Colecção</td>
-                <td scope="col" style="width: 5%">Quantidade</td>
-                <td scope="col" style="width: 5%">Localização</td>
-                <td scope="col" style="width: 5%"></td>
-                <td scope="col" style="width: 5%"></td>
+                <td scope="col" style="width: 15%">Título</td>
+                <td scope="col" style="width: 15%">Autor</td>
+                <td scope="col" style="width: 10%">Editora</td>
+                <td scope="col" style="width: 10%">Ano</td>
+                <td scope="col" style="width: 10%">Tema</td>
+                <td scope="col" style="width: 9%">Volumes</td>
+                <td scope="col" style="width: 10%">Título da Colecção</td>
+                <td scope="col" style="width: 4%">Quantidade</td>
+                <td scope="col" style="width: 4%">Localização</td>
+                <td scope="col" style="width: 4%"></td>
+                <td scope="col" style="width: 4%"></td>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <form action="{{ url_for('adicionar') }}" method="POST">
+                <form action="{{ url_for('adicionar') }}" method="POST" autocomplete="off">
                     <th scope="row">Novo</th>
                     <td>
                         <input class="form-control" type="text" id="titulo" name="titulo">
                     </td>
                     <td>
-                        <input class="form-control" type="search" id="autor" name="autor">
+                        <div class="autocomplete">
+                            <input class="form-control" type="text" id="autor" name="autor">
+                        </div>
                     </td>
                     <td>
-                        <input class="form-control" type="search" id="editora" name="editora">
+                        <div class="autocomplete">
+                            <input class="form-control" type="text" id="editora" name="editora">
+                        </div>
+                    </td>
+                    <td>
+                        <input class="form-control" type="text" id="ano" name="ano">
+                    </td>
+                    <td>
+                        <input class="form-control" type="text" id="tema" name="tema">
+                    </td>
+                    <td>
+                        <input class="form-control" type="text" id="volumes" name="volumes">
                     </td>
                     <td>
                         <input class="form-control" type="text" id="coleccao" name="coleccao">
                     </td>
                     <td>
-                        <input class="form-control" type="number" id="quant" name="quant" min="1" max="10">
+                        <input class="form-control" type="number" id="quant" name="quant" min="1" max="30">
                     </td>
                     <td>
                         <input class="form-control" type="text" id="local" name="local">
@@ -64,6 +85,9 @@
                     <td>{{ livro.titulo }}</td>
                     <td>{{ livro.autor.nome }}</td>
                     <td>{{ livro.editora }}</td>
+                    <td>{{ livro.ano }}</td>
+                    <td>{{ livro.tema }}</td>
+                    <td>{{ livro.volumes }}</td>
                     <td>{{ livro.titulo_coleccao }}</td>
                     <td>{{ livro.quantidade }}</td>
                     <td>{{ livro.localizacao }}</td>
@@ -117,12 +141,20 @@
                             <input class="form-control" type="search" id="autor" value="{{ livro.autor }}" name="autor">
                             <label for="editora">Editora</label>
                             <input class="form-control" type="search" id="editora" value="{{ livro.editora }}" name="editora">
+                            <label for="ano">Ano</label>
+                            <input class="form-control" type="search" id="ano" value="{{ livro.ano }}" name="ano">
+                            <label for="tema">Tema</label>
+                            <input class="form-control" type="search" id="tema" value="{{ livro.tema }}" name="tema">
+                            <label for="volumes">Volumes</label>
+                            <input class="form-control" type="search" id="volumes" value="{{ livro.volumes }}" name="volumes">
                             <label for="coleccao">Título da Colecção</label>
                             <input class="form-control" type="text" id="coleccao" value="{{ livro.titulo_coleccao }}" name="coleccao">
-                            <label for="quant">Quantidade</label>
-                            <input class="form-control" type="number" id="quant" name="quant" min="1" max="10" value="{{ livro.quant }}" name="quant">
-                            <label for="local">Localização</label>
-                            <input class="form-control" type="text" id="local"  value="{{ livro.local }}" name="local">
+                            <label for="quantidade">Quantidade</label>
+                            <input class="form-control" type="number" id="quantidade" name="quantidade" min="1" max="10" value="{{ livro.quantidade }}" name="quantidade">
+                            <label for="localizacao">Localização</label>
+                            <input class="form-control" type="text" id="localizacao"  value="{{ livro.localizacao }}" name="localizacao">
+                            <label for="emprestado_a">Emprestado a</label>
+                            <input class="form-control" type="text" id="emprestado_a"  value="{{ livro.emprestado_a }}" name="emprestado_a">
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" data-dismiss="modal">Cancelar</button>
@@ -134,14 +166,21 @@
         </div>
     {% endfor %}
 
-<script>
-function clearForm(){
-    inputs = document.getElementsByTagName("input");
-    for (i in inputs) {
-        inputs[i].value = "";
-    }
-}
+<!-- Javascript for autocomplete -->
+<script src="{{ url_for('static', filename='js/autocomplete.js') }}"></script>
 
+<script>
+    function clearForm(){
+        inputs = document.getElementsByTagName("input");
+        for (i in inputs) {
+            inputs[i].value = "";
+        }
+    }
+
+    var autores = {{ autores|safe }};
+    var editoras = {{ editoras|safe }};
+    autocomplete(document.getElementById("autor"), autores);
+    autocomplete(document.getElementById("editora"), editoras);
 </script>
 
 {% endblock %}
