@@ -94,9 +94,19 @@ def import_csv():
             print('No selected file')
             return redirect(request.url)
         
-        filename = secure_filename(file.filename)
-        response = import_books_from_csv(file, filename)
-        return response
+        nao_adicionados = import_books_from_csv(file)
+        alert = {}
+        if nao_adicionados:
+            alert = {
+                "type": "warning",
+                "message": "Os seguintes livros nao foram adicionados: %s." % ", ".join(nao_adicionados),
+            }
+
+        livros = Livro.query.order_by(desc(Livro.id))
+        autores = [autor.nome for autor in Autor.query.all()]
+        editoras = list(set([livro.editora for livro in livros]))
+        return render_template("adicionar_livros.html", livros=livros, 
+        alert=alert, autores=autores, editoras=editoras)
     return redirect(request.url)
 
 @app.route('/adicionar', methods=('POST', 'GET'))
@@ -205,10 +215,46 @@ def export_books_to_csv():
     return response
 
 
-def import_books_from_csv(file, filename):
-    with open(file) as csv_file:
-        print(csv_file)
-    return filename
+def import_books_from_csv(file):
+    file_data = file.read().decode("latin-1")
+    csv_data = StringIO(file_data)
+    csvReader = csv.reader(csv_data)
+
+    header = next(csvReader)
+    print(header)
+
+    nao_adicionados = []
+    for row in csvReader:
+        print(row)
+        titulo = row[header.index("titulo")]
+        autor_nome = row[header.index("autor_id")]
+        editora = row[header.index("editora")]
+        ano = row[header.index("ano")]
+        tema = row[header.index("tema")]
+        volumes = row[header.index("volumes")]
+        titulo_coleccao = row[header.index("titulo_coleccao")]
+        quantidade = row[header.index("quantidade")]
+        localizacao = row[header.index("localizacao")]
+
+        if Livro.query.filter_by(titulo=titulo).count() == 0:
+            autor = Autor.autor_a_partir_to_nome(autor_nome)
+            print("Adding a new book...")
+            Livro.criar_novo_livro(
+                titulo=titulo,
+                autor=autor,
+                editora=editora,
+                ano=ano,
+                tema=tema,
+                volumes=volumes,
+                titulo_coleccao=titulo_coleccao,
+                quantidade=quantidade,
+                localizacao=localizacao,
+            )
+        else:
+            nao_adicionados.append(titulo)
+            print("livro ja existe na biblioteca, nao foi adicionado...")
+
+    return nao_adicionados
 
 if __name__ == '__main__':
     import random, threading, webbrowser
