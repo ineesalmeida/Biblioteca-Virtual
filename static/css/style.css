@@ -21,14 +21,14 @@ p, input, td {
 }
 
 header {
-    padding: 60px;
+    padding: 50px;
     /* background-image: url("../images/livros.jpg"); */
     background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("../images/livros.jpg");
 }
 
 header h1 {
     color: white;
-    font-size: 60pt;
+    font-size: 50pt;
 }
 
 header h2 {

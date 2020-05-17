@@ -1,11 +1,18 @@
 import csv
+import os
 from io import StringIO
+
 from flask import Flask, render_template, request, make_response, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import desc
+from werkzeug.utils import secure_filename
+
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///biblioteca.db'
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///' + os.path.join(basedir, 'biblioteca.db')
+print(app.config["SQLALCHEMY_DATABASE_URI"])
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 class Livro(db.Model):
@@ -67,12 +74,30 @@ def index():
     livros = Livro.query.all()
     return render_template("pesquisar_livros.html", livros=livros)
 
-
 @app.route("/export/", methods=['POST'])
 def export_csv():
-    response = export_books_to_csv()
-    return response
+    if request.method == 'POST':
+        response = export_books_to_csv(request)
+        return response
 
+@app.route("/importar/", methods=['POST'])
+def import_csv():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            print('No file part')
+            return redirect(request.url)
+        file = request.files['file']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            print('No selected file')
+            return redirect(request.url)
+        
+        filename = secure_filename(file.filename)
+        response = import_books_from_csv(file, filename)
+        return response
+    return redirect(request.url)
 
 @app.route('/adicionar', methods=('POST', 'GET'))
 def adicionar():
@@ -80,19 +105,26 @@ def adicionar():
     if request.method == 'POST':
         if request.form.get("editar_livro"):
             if request.form.get("autor") and request.form.get("titulo"):
-                autor = Autor.autor_a_partir_to_nome(request.form["autor"])
-                livro_para_editar = Livro.query.get(request.form["livro_id"])
-                livro_para_editar.titulo=request.form.get("titulo", "")
-                livro_para_editar.autor=autor
-                livro_para_editar.editora=request.form.get("editora", "")
-                livro_para_editar.ano=request.form.get("ano", "")
-                livro_para_editar.tema=request.form.get("tema", "")
-                livro_para_editar.volumes=request.form.get("volumes", "")
-                livro_para_editar.titulo_coleccao=request.form.get("coleccao", "")
-                livro_para_editar.quantidade=request.form.get("quantidade", 1)
-                livro_para_editar.localizacao=request.form.get("localizacao", "")
-                livro_para_editar.emprestado_a=request.form.get("emprestado_a", "")
-                db.session.commit()
+                if Livro.query.filter_by(titulo=request.form["titulo"]).count() == 0 or \
+                    str(Livro.query.filter_by(titulo=request.form["titulo"])[0].id) == request.form["livro_id"]:
+                    autor = Autor.autor_a_partir_to_nome(request.form["autor"])
+                    livro_para_editar = Livro.query.get(request.form["livro_id"])
+                    livro_para_editar.titulo=request.form.get("titulo", "")
+                    livro_para_editar.autor=autor
+                    livro_para_editar.editora=request.form.get("editora", "")
+                    livro_para_editar.ano=request.form.get("ano", "")
+                    livro_para_editar.tema=request.form.get("tema", "")
+                    livro_para_editar.volumes=request.form.get("volumes", "")
+                    livro_para_editar.titulo_coleccao=request.form.get("coleccao", "")
+                    livro_para_editar.quantidade=request.form.get("quantidade", 1)
+                    livro_para_editar.localizacao=request.form.get("localizacao", "")
+                    livro_para_editar.emprestado_a=request.form.get("emprestado_a", "")
+                    db.session.commit()
+                else:
+                    alert = {
+                        "type": "warning",
+                        "message": "Já existe um livro com esse título e autor.",
+                    }
             else:
                 alert = {
                     "type": "warning",
@@ -112,19 +144,25 @@ def adicionar():
             db.session.commit()
         else:
             if request.form.get("autor") and request.form.get("titulo"):
-                autor = Autor.autor_a_partir_to_nome(request.form["autor"])
-                print("Adding a new book...")
-                Livro.criar_novo_livro(
-                    titulo=request.form.get("titulo", ""),
-                    autor=autor,
-                    editora=request.form.get("editora", ""),
-                    ano=request.form.get("ano", ""),
-                    tema=request.form.get("tema", ""),
-                    volumes=request.form.get("volumes", ""),
-                    titulo_coleccao=request.form.get("coleccao", ""),
-                    quantidade=request.form.get("quant", 1),
-                    localizacao=request.form.get("local", ""),
-                )
+                if Livro.query.filter_by(titulo=request.form["titulo"]).count() == 0:
+                    autor = Autor.autor_a_partir_to_nome(request.form["autor"])
+                    print("Adding a new book...")
+                    Livro.criar_novo_livro(
+                        titulo=request.form.get("titulo", ""),
+                        autor=autor,
+                        editora=request.form.get("editora", ""),
+                        ano=request.form.get("ano", ""),
+                        tema=request.form.get("tema", ""),
+                        volumes=request.form.get("volumes", ""),
+                        titulo_coleccao=request.form.get("coleccao", ""),
+                        quantidade=request.form.get("quant", 1),
+                        localizacao=request.form.get("local", ""),
+                    )
+                else:
+                    alert = {
+                        "type": "warning",
+                        "message": "Já existe um livro com esse título.",
+                    }
             else:
                 alert = {
                     "type": "warning",
@@ -166,6 +204,11 @@ def export_books_to_csv():
     response.headers["Content-type"] = "text/csv"
     return response
 
+
+def import_books_from_csv(file, filename):
+    with open(file) as csv_file:
+        print(csv_file)
+    return filename
 
 if __name__ == '__main__':
     import random, threading, webbrowser
